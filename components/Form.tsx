@@ -15,6 +15,7 @@ type HistoryItem = {
 
 const Form = () => {
   const messageInput = React.useRef<HTMLTextAreaElement | null>(null);
+  const scrollableDiv = React.useRef<HTMLDivElement | null>(null);
   const [history, setHistory] = React.useState<HistoryItem[]>([]);
   const [status, setStatus] = React.useState<Status>(Status.IDLE);
 
@@ -32,11 +33,12 @@ const Form = () => {
     e.preventDefault();
     setStatus(Status.LOADING);
     const message = messageInput.current?.value;
+    scrollableDiv.current?.scrollTo(0, scrollableDiv.current.scrollHeight);
     messageInput.current!.value = "";
     if (!message) return;
     setHistory((prev) => [...prev, { message }]);
 
-    const response = await fetch("/api/query", {
+    const response = await fetch("http://127.0.0.1:5000/query", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -49,6 +51,7 @@ const Form = () => {
 
     if (!response.ok) {
       setStatus(Status.ERROR);
+      scrollableDiv.current?.scrollTo(0, scrollableDiv.current.scrollHeight);
       return;
     }
 
@@ -58,6 +61,7 @@ const Form = () => {
       newHistory[newHistory.length - 1].response = data.response;
       return newHistory;
     });
+    scrollableDiv.current?.scrollTo(0, scrollableDiv.current.scrollHeight);
     setStatus(Status.SUCCESS);
   };
 
@@ -89,10 +93,13 @@ const Form = () => {
           Start a new session
         </button>
       </div>
-      <div className="w-full mx-2 flex flex-col items-start gap-3 pt-6 last:mb-6 md:mx-auto md:max-w-3xl h-full">
-        {history.map((item: HistoryItem) => {
+      <div
+        className="w-full mx-2 flex flex-col items-start gap-3 pt-6 pb-20 md:mx-auto md:max-w-[850px] h-full overflow-y-scroll"
+        ref={scrollableDiv}
+      >
+        {history.map((item: HistoryItem, index: number) => {
           return (
-            <>
+            <React.Fragment key={index}>
               <div className="w-full">
                 <div
                   className={`bg-blue-500 text-right float-right p-3 rounded-lg`}
@@ -102,12 +109,12 @@ const Form = () => {
               </div>
               <div className="w-full">
                 <div
-                  className={`bg-gray-500 text-left float-left p-3 rounded-lg`}
+                  className={`bg-green-800 text-left float-left p-3 rounded-lg whitespace-pre-line`}
                 >
                   <p>{renderResponse(item)}</p>
                 </div>
               </div>
-            </>
+            </React.Fragment>
           );
         })}
       </div>
