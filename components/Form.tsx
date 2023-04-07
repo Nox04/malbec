@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { Loading } from "./Loading";
 
 enum Status {
   IDLE = "idle",
@@ -76,7 +77,7 @@ const Form = () => {
       return item.response;
     }
     if (status === Status.LOADING) {
-      return "Thinking...";
+      return <Loading />;
     } else if (status === Status.ERROR) {
       return "Error";
     }
