@@ -89,7 +89,7 @@ const Form = () => {
         <button
           onClick={handleReset}
           type="reset"
-          className="p-4 rounded-md text-gray-400 bg-gray-900"
+          className="p-4 rounded-md text-[#fab387] bg-gray-900"
         >
           Start a new session
         </button>
@@ -121,18 +121,18 @@ const Form = () => {
       </div>
       <form
         onSubmit={handleSubmit}
-        className="w-full md:max-w-3xl rounded-md mb-4 flex space-x-4"
+        className="w-full md:max-w-3xl rounded-md mb-4 flex space-x-4 text-[#fab387]"
       >
         <textarea
           placeholder="Ask to Malbec"
           ref={messageInput}
           onKeyDown={handleEnter}
-          className="flex-grow resize-none shadow-[0_0_10px_rgba(0,0,0,0.10)] bg-gray-900 outline-none pt-4 pl-4 rounded-md"
+          className="flex-grow placeholder:text-[#fab387] resize-none shadow-[0_0_10px_rgba(0,0,0,0.10)] bg-gray-900 outline-none pt-4 pl-4 rounded-md"
         />
         <button
           disabled={status === Status.LOADING}
           type="submit"
-          className="h-full p-1 w-16 rounded-md flex items-center justify-center text-gray-400 bg-gray-900"
+          className="h-full p-1 w-16 rounded-md flex items-center justify-center bg-gray-900"
         >
           <svg
             stroke="currentColor"
