@@ -1,8 +1,10 @@
 "use client";
 import React from "react";
 import { Loading } from "./Loading";
+import Modal from "./Modal";
 
 enum Status {
+  ASKING_DOCUMENT = "asking_document",
   IDLE = "idle",
   LOADING = "loading",
   SUCCESS = "success",
@@ -18,7 +20,8 @@ const Form = () => {
   const messageInput = React.useRef<HTMLTextAreaElement | null>(null);
   const scrollableDiv = React.useRef<HTMLDivElement | null>(null);
   const [history, setHistory] = React.useState<HistoryItem[]>([]);
-  const [status, setStatus] = React.useState<Status>(Status.IDLE);
+  const [status, setStatus] = React.useState<Status>(Status.ASKING_DOCUMENT);
+  const [topic, setTopic] = React.useState<string>("");
 
   const handleEnter = (
     e: React.KeyboardEvent<HTMLTextAreaElement> &
@@ -47,6 +50,7 @@ const Form = () => {
       body: JSON.stringify({
         history,
         message,
+        topic,
       }),
     });
 
@@ -70,6 +74,7 @@ const Form = () => {
     localStorage.removeItem("response");
     setHistory([]);
     messageInput.current?.focus();
+    setStatus(Status.ASKING_DOCUMENT);
   };
 
   const renderResponse = (item: HistoryItem) => {
@@ -83,8 +88,14 @@ const Form = () => {
     }
   };
 
+  const closeModal = (topic: string) => {
+    setTopic(topic);
+    setStatus(Status.IDLE);
+  };
+
   return (
     <div className="flex items-center h-full flex-col">
+      <Modal open={status === Status.ASKING_DOCUMENT} onClose={closeModal} />
       <div className="w-full flex justify-end p-4">
         <button
           onClick={handleReset}
@@ -105,14 +116,14 @@ const Form = () => {
                 <div
                   className={`bg-blue-500 text-right float-right p-3 rounded-lg`}
                 >
-                  <p>{item.message}</p>
+                  <div>{item.message}</div>
                 </div>
               </div>
               <div className="w-full">
                 <div
                   className={`bg-green-800 text-left float-left p-3 rounded-lg whitespace-pre-line`}
                 >
-                  <p>{renderResponse(item)}</p>
+                  <div>{renderResponse(item)}</div>
                 </div>
               </div>
             </React.Fragment>
