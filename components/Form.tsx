@@ -2,6 +2,8 @@
 import React from "react";
 import { Loading } from "./Loading";
 import Modal from "./Modal";
+import Recorder from "./Recorder";
+import { Howl, Howler } from "howler";
 
 enum Status {
   ASKING_DOCUMENT = "asking_document",
@@ -22,6 +24,7 @@ const Form = () => {
   const [history, setHistory] = React.useState<HistoryItem[]>([]);
   const [status, setStatus] = React.useState<Status>(Status.ASKING_DOCUMENT);
   const [topic, setTopic] = React.useState<string>("");
+  const howler = React.useRef<Howl | null>(null);
 
   const handleEnter = (
     e: React.KeyboardEvent<HTMLTextAreaElement> &
@@ -35,6 +38,7 @@ const Form = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    howler?.current?.stop();
     setStatus(Status.LOADING);
     const message = messageInput.current?.value;
     scrollableDiv.current?.scrollTo(0, scrollableDiv.current.scrollHeight);
@@ -66,8 +70,57 @@ const Form = () => {
       newHistory[newHistory.length - 1].response = data.response;
       return newHistory;
     });
+    const sound = new Howl({
+      src: ["/" + data.audio],
+      html5: true,
+    });
+    howler.current = sound;
     scrollableDiv.current?.scrollTo(0, scrollableDiv.current.scrollHeight);
     setStatus(Status.SUCCESS);
+    sound.play();
+  };
+
+  const handleVoice = async (transcript: string) => {
+    howler?.current?.stop();
+    setStatus(Status.LOADING);
+    const message = transcript;
+    scrollableDiv.current?.scrollTo(0, scrollableDiv.current.scrollHeight);
+    messageInput.current!.value = "";
+    if (!message) return;
+    setHistory((prev) => [...prev, { message }]);
+
+    const response = await fetch("http://127.0.0.1:5000/query", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        history,
+        message,
+        topic,
+      }),
+    });
+
+    if (!response.ok) {
+      setStatus(Status.ERROR);
+      scrollableDiv.current?.scrollTo(0, scrollableDiv.current.scrollHeight);
+      return;
+    }
+
+    const data = await response.json();
+    setHistory((prev) => {
+      const newHistory = [...prev];
+      newHistory[newHistory.length - 1].response = data.response;
+      return newHistory;
+    });
+    const sound = new Howl({
+      src: ["/" + data.audio],
+      html5: true,
+    });
+    howler.current = sound;
+    scrollableDiv.current?.scrollTo(0, scrollableDiv.current.scrollHeight);
+    setStatus(Status.SUCCESS);
+    sound.play();
   };
 
   const handleReset = () => {
@@ -158,6 +211,7 @@ const Form = () => {
             <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
           </svg>
         </button>
+        <Recorder onResponse={handleVoice} />
       </form>
     </div>
   );
